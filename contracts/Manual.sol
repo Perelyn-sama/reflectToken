@@ -114,5 +114,45 @@ contract Manual {
         return true;
     }
 
+    function dividendsOwning(address account) internal view returns(uint256){
+        if(isBlackListed[account]){
+            return 0;
+        }
+        uint256 newDividendPoints = totalDividendPoints - accounts[account].lastDividendPoints;
+
+        return (accounts[account].balance * newDividendPoints) /  pointMultiplier;
+    }
+
+    modifier updateAccount(address account){
+        uint256 owing = dividendsOwning(account);
+        if(owing > 0){
+            unclaimedDividends -= owing;
+            accounts[account].balance += owing;
+        }
+        accounts[account].lastDividendPoints = totalDividendPoints;
+        _;
+    }
+
+    function disburse(uint256 amount) private {
+        totalDividendPoints += (amount * pointMultiplier / (totalSupply -blackListAmount));
+        unclaimedDividends += amount;
+    }
+
+    function balanceOf(address account) public view returns(uint256){
+        uint256 owing = dividendsOwning(account);
+        return accounts[account].balance + owing;
+    }
+
+    function mint(address recipient, uint256 amount) public onlyOwner updateAccount(recipient) {
+        accounts[recipient].balance += amount;
+        totalSupply += amount;
+    }
+
+    function blackList(address user) public onlyOwner updateAccount(user){
+        if(!isBlackListed[user]){
+            isBlackListed[user] = true;
+            blackListAmount += accounts[user].balance;
+        }
+    }
 
 }
