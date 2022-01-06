@@ -11,6 +11,7 @@ abstract contract Tokenomics {
     using SafeMath for uint256;
     
 
+
     string internal constant NAME = "SafeToken.V1Beta";
     string internal constant SYMBOL = "STKN.V1Beta";
     
@@ -23,6 +24,7 @@ abstract contract Tokenomics {
     uint256 internal _reflectedSupply = (MAX - (MAX % TOTAL_SUPPLY));
 
     uint256 internal constant maxTransactionAmount = TOTAL_SUPPLY / 100; // 1% of the total supply
+
 
     uint256 internal constant maxWalletBalance = TOTAL_SUPPLY / 50; // 2% of the total supply
     
