@@ -16,9 +16,12 @@ contract REFLECT is Context, IERC20, Ownable {
     mapping (address => mapping (address => uint256)) private _allowances;
 
     mapping (address => bool) private _isExcluded;
+    // Who should be excluded?
     address[] private _excluded;
    
+    // This line does not make sense to me
     uint256 private constant MAX = ~uint256(0);
+
     // Set to 1 trillion 10000 * 10**9 * 10**9
     uint256 private constant _tTotal = 10 * 10**6 * 10**9;
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
@@ -30,7 +33,10 @@ contract REFLECT is Context, IERC20, Ownable {
     uint8 private _decimals = 9;
 
     constructor () public {
+        // Does this line allocate all the reward tokens to the deployer?
         _rOwned[_msgSender()] = _rTotal;
+
+        // Why does he emit an event about all the tokens in supply being transferred to the owner without any line doing so, did i miss something?
         emit Transfer(address(0), _msgSender(), _tTotal);
     }
 
@@ -51,6 +57,8 @@ contract REFLECT is Context, IERC20, Ownable {
     }
 
     function balanceOf(address account) public view override returns (uint256) {
+
+        // tokenFromReflection - what do you do?
         if (_isExcluded[account]) return _tOwned[account];
         return tokenFromReflection(_rOwned[account]);
     }
@@ -93,12 +101,27 @@ contract REFLECT is Context, IERC20, Ownable {
         return _tFeeTotal;
     }
 
+    // sender is not specified anywhere in this code. Oh i've seen why. 
+    // TODO READ ABOUT OWNABLE
+    // So this function burns reward tokens then adds them to the fees?
     function reflect(uint256 tAmount) public {
         address sender = _msgSender();
+        
+        // Why can't excluded addresses use this function, i guess you have to know what it does first
         require(!_isExcluded[sender], "Excluded addresses cannot call this function");
+
+        // The excessive use of comas, is that solidty syntax or effects from a high dev
+        // So the reason for the excessive commas is because this function returns five uints and were extracting only one
+        // I'm guessing what this line does is get the reward amount from the token amount
         (uint256 rAmount,,,,) = _getValues(tAmount);
+
+        // Okay so we're removing the reward tokens this address has
         _rOwned[sender] = _rOwned[sender].sub(rAmount);
+
+        // Subtracting the total reward tokens 
         _rTotal = _rTotal.sub(rAmount);
+
+        // hmmm
         _tFeeTotal = _tFeeTotal.add(tAmount);
     }
 
